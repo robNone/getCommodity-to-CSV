@@ -12,7 +12,7 @@ while True:
 	file_name = "csvtest.csv"#附件名  
 	  
 	server = smtplib.SMTP_SSL("smtp.qq.com", 465)
-	server.login("1634475170@qq.com","xthebkskepksehbg") #仅smtp服务器需要验证时  
+	server.login("1634475170@qq.com","pwd") # pwd=QQ密码 仅smtp服务器需要验证时  
 	  
 	# 构造MIMEMultipart对象做为根容器  
 	main_msg = email.MIMEMultipart.MIMEMultipart()  
