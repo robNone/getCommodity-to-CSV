@@ -7,6 +7,7 @@ from models import paramete
 import json
 import ast
 import xlwt
+import threading
 import sys
 import re
 reload(sys)
@@ -23,7 +24,7 @@ headers     ={ "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,i
 def webGet(url):
  	try:
 		de = requests.get(url=url,
-                      headers=headers)
+                      headers=headers,timeout=10)
 		print de.status_code
 		return de.text
 	except Exception as e:
@@ -38,7 +39,15 @@ def doerro(url ):
 		print 'Network Error Retry----- '
 	print url+' go......Success'
 	return Result
-
+def doSave(url ):
+	Result=''
+	while Result=="":
+		Result=webGet(url )
+		if Result!='':
+			break
+		print 'Network Error Retry----- '
+	print url+' go......Success'
+	db.insertPage({'page':Result})
 def Geteasybiz():
 	url='''https://rocksmith.easybiz.me/mgmt/inventory/products.json?order=asc'''
 	header={ "Accept":"application/json, text/javascript, */*; q=0.01",
@@ -54,14 +63,18 @@ def Geteasybiz():
 	db.Del()
 	for jso in easybizJson:
 		db.insert(jso)
+	thread_list = [] 
 	for x in xrange(100):
 		url='https://dashboard.xsellco.com/salesorder?page='+str(x+1)
-		salesorder.PageAnalysis(salesorder.doerro(url))
 		
+		t =threading.Thread(target=salesorder.doerro,args=('https://dashboard.xsellco.com/salesorder?page='+str(x+1),))
+		thread_list.append(t)
+	for t in thread_list:
+		t.start()
+	for t in thread_list:
+		t.join()
 if __name__ == '__main__':
 	Geteasybiz()
-
-
 def fooget(url):
 	strl=str( doerro(url))
 	s=re.split("1 - 100 of ",strl)[1].split('<')[0]
@@ -127,13 +140,13 @@ def fooget(url):
 			
 			except Exception as e:
 				print e
-			zoheader={ "Accept":"application/json, text/javascript, */*; q=0.01",
-            "Accept-Encoding":"gzip , 'deflate','br'",
-            "Accept-Language":"zh-CN,zh;q=0.8",
-            "content-type":"application/json",
-            "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
-            "Cookie":'AWSELB=C3D9FDF90A2BD82AE2851173282959FE68EF057263227BD1F17315BF6F30C6947A3990B930A1D0F3F7F9549AB29A1725A1DB32C5D9223E6F3F1E909D6C9CBF48B3E2010B4B; SHAREJSESSIONID=32286a46-e40f-427a-a1ce-668e546b1eae; rememberMe=jnSJ4htAGHHBVKKSVE71H5MqifGE5w7TvkUob+u6p9rVJcOX6ZPTpUyHtCUtJEatJDjc8Eg64fG34MQj/NutX0izsRxwF+Vhh1qrKNOiOecnblRfaV4AzZKzb6VCu+OZpK/is/U0Ozwwd0JIy8+lkNn6+e/FNh0sX4s/eZg0AHt+Ay0qI6nJRWRvp+uTMJRJ0aixzK4IJVU/x69vSJwwuM3vGvF8Iwn5pvLKiu+2C1mYYu63UwKlbz1LHjON43x+cT4tibOSUUm9w+AafYZ/kcJW+kGuKgwIjDQ9TZe+tWDoH15CP3jiFyRGzysudbMG9im/LL1CsxXddaMb1kjqUmHVWtSbsd8Pf9/rP0NeZEDGKrAPInOoLfaWCoqrVR9M8VgTc6AMW7RCRSQp6JkrJ/lUOgoyVBMKJxsT9Q6mzqgZLSl956xxIl0BAT+2puI07OTAwwQNraa/2f2yUC43fiV7GO3ugsJIh75viuWynEoe0UdSroVsXPL7VhpqlTgCFl7ajfayp91Ssde7cvmb7uR6s7ZPpU1Gl1xzuIWaKO/wULbjADoNcT9hOKBb3DYpRELbltBvh8eVov//Y17Plab8UDJJuFvGP2zLmJyAjtqYr714z1NEUoCg8RDpB7An8TNkMYyzYwUflZmaKpkbCMenJ/S71dtVeBhcT0yD/kKOwSoJfD1e29KcvNwbUj5vDVKLas4Xm4HPV8dIFBTiUA==; id=6add5714f634642c; username=1634475170%40qq.com; type=0; Hm_lvt_d3128fb229f35448f6a7c9860be9f14d=1498550925; Hm_lpvt_d3128fb229f35448f6a7c9860be9f14d=1500015603'
-            }
+			# zoheader={ "Accept":"application/json, text/javascript, */*; q=0.01",
+   #          "Accept-Encoding":"gzip , 'deflate','br'",
+   #          "Accept-Language":"zh-CN,zh;q=0.8",
+   #          "content-type":"application/json",
+   #          "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+   #          "Cookie":'AWSELB=C3D9FDF90A2BD82AE2851173282959FE68EF057263227BD1F17315BF6F30C6947A3990B930A1D0F3F7F9549AB29A1725A1DB32C5D9223E6F3F1E909D6C9CBF48B3E2010B4B; SHAREJSESSIONID=32286a46-e40f-427a-a1ce-668e546b1eae; rememberMe=jnSJ4htAGHHBVKKSVE71H5MqifGE5w7TvkUob+u6p9rVJcOX6ZPTpUyHtCUtJEatJDjc8Eg64fG34MQj/NutX0izsRxwF+Vhh1qrKNOiOecnblRfaV4AzZKzb6VCu+OZpK/is/U0Ozwwd0JIy8+lkNn6+e/FNh0sX4s/eZg0AHt+Ay0qI6nJRWRvp+uTMJRJ0aixzK4IJVU/x69vSJwwuM3vGvF8Iwn5pvLKiu+2C1mYYu63UwKlbz1LHjON43x+cT4tibOSUUm9w+AafYZ/kcJW+kGuKgwIjDQ9TZe+tWDoH15CP3jiFyRGzysudbMG9im/LL1CsxXddaMb1kjqUmHVWtSbsd8Pf9/rP0NeZEDGKrAPInOoLfaWCoqrVR9M8VgTc6AMW7RCRSQp6JkrJ/lUOgoyVBMKJxsT9Q6mzqgZLSl956xxIl0BAT+2puI07OTAwwQNraa/2f2yUC43fiV7GO3ugsJIh75viuWynEoe0UdSroVsXPL7VhpqlTgCFl7ajfayp91Ssde7cvmb7uR6s7ZPpU1Gl1xzuIWaKO/wULbjADoNcT9hOKBb3DYpRELbltBvh8eVov//Y17Plab8UDJJuFvGP2zLmJyAjtqYr714z1NEUoCg8RDpB7An8TNkMYyzYwUflZmaKpkbCMenJ/S71dtVeBhcT0yD/kKOwSoJfD1e29KcvNwbUj5vDVKLas4Xm4HPV8dIFBTiUA==; id=6add5714f634642c; username=1634475170%40qq.com; type=0; Hm_lvt_d3128fb229f35448f6a7c9860be9f14d=1498550925; Hm_lpvt_d3128fb229f35448f6a7c9860be9f14d=1500015603'
+   #          }
 			# data={}
 			# if ASIN!='':
 			# 	if db.findone(ASIN)==None:
@@ -170,6 +183,89 @@ def fooget(url):
  		except Exception as e:
  			print e
  	return li
+
+def getXsellcoPage(page):
+	li=[] 
+	lista= re.split('<tr',page)
+	del lista[0:2]
+	for z in lista:
+		zhanghao= z[z.find('title'):].split('"')[1]
+		SKU=z[z.find('fs_sku='):].split('=')[1].split('"')[0]
+		ASIN=z[z.find('offer-listing'):].split('/')[1].split('"')[0]
+		name=z[z.find('offer-listing'):].split('>')[1].split('<')[0]
+		hasUMber=z[z.find('FBA'):].split('"')[1].replace('In stock:','').replace('New','')
+		sellers=z[z.find('text-muted text-muted js-twipsy'):].split('"')[4] 
+		BuyBoxPrice=z[z.find('Buy Box price'):].split('>')[1].split('<')[0] 
+		LowestPrice= re.split('Shipping',z)[2].split('>')[1].split('<')[0]
+		MyPrice=re.split('Shipping',z)[3].split('>')[1].split('<')[0]
+		MyLowestPrice=re.split('text-lg input-group-prepend',z)[1].split('=')[7].split('"')[1] 
+		MyHighestPrice=re.split('text-lg input-group-prepend',z)[2].split('value')[1].split('"')[1] 
+		if z.find('icon-line-chart')>0:
+			Rank=z[z.find('icon-line-chart'):].split('>')[2].split('<')[0] 
+		else:
+			Rank=''
+		if z.find('selected')>0:
+			selected=z[z.find('selected'):].split('>')[1].split('<')[0] 
+		else:
+			selected=''
+		value=0
+		cz=0.0
+		for x in db.select(ASIN):
+			if x['price']!=None:
+				if x['price']!=1.0:
+					value+=float(x['price'])
+					cz+=1.0
+		if value!=0:
+			value= value/cz
+		sales=0
+		for key in db.selectx(SKU):
+			if zhanghao.replace('acct ','')==key['Acct']:
+				sales+= int(key['Umber'])
+		matchbuybox=0
+		Umatchbuybox=0
+		try:
+			if (BuyBoxPrice!='' )and (MyLowestPrice!=''):
+				matchbuybox= float(MyLowestPrice.replace(',','').replace('$',''))-float(BuyBoxPrice.replace(',','').replace('$','').replace('C','').replace('$',''))
+			if matchbuybox<=0:
+				Umatchbuybox=True
+			else :
+				Umatchbuybox=False
+		except Exception as e:
+			print e
+			print 'erro:matchbuybox'
+		Laptop=0
+		Desktop=0
+		try:
+			if value!=0:
+				Laptop=(float(MyPrice.replace('$','').replace('C','').replace(',',''))*0.94-value-10)	/float(MyPrice.replace(',','').replace('C','').replace('$','')	)
+				Desktop=(float(MyPrice.replace(',','').replace('C','').replace('$',''))*0.94-value-20)	/float(MyPrice.replace(',','').replace('C','').replace('$','')	)
+			
+		except Exception as e:
+			print e
+		az=(zhanghao,SKU,ASIN,name,hasUMber,sellers,Rank,BuyBoxPrice,LowestPrice,MyPrice,MyLowestPrice,MyHighestPrice,Umatchbuybox,selected,Laptop,Desktop,value,sales)
+		li.append(az)
+	return li
+
+
+def  runfast(url):
+	strl=str( doerro(url))
+	s=re.split("1 - 100 of ",strl)[1].split('<')[0]
+	li=[]
+	sc= int(s.replace(',','').replace('  ',''))//100
+	for x in range(sc+1):
+		try:
+			# 'https://dashboard.xsellco.com'+strl[strl.find('Next'):].split('"')[2]
+			li.append(threading.Thread(target=doSave,args=(url[:-1]+str(x+1),)) )
+ 		except Exception as e:
+ 			print e
+ 	for t in li:
+ 		t.start()
+ 	for t in li:
+ 		t.join()
+ 	lis=[]
+ 	for x in db.threadFind():
+ 		lis+=getXsellcoPage(x['page'])
+ 	return lis
 # def timer():  
 #     ''''' 
 #     每n秒执行一次 
@@ -194,8 +290,8 @@ if __name__ == '__main__':
 	# print requests.post(data=data,url=url,headers=headers).text
 	while True:
 		# Geteasybiz()
-		lista= fooget('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=1&fgte_quantity=1')
-		lista+=fooget('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=0&fgte_quantity=1')
+		lista= runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=1&fgte_quantity=1')
+		lista+=runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=0&fgte_quantity=1')
 		import csv
 		csvfile = file('csvtest.csv', 'wb')
 		writer = csv.writer(csvfile)

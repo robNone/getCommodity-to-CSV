@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import requests
-import db
+from DB import db
 import re
+import sys
+import re
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 NewHeaders = {"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
               "Accept-Encoding": "gzip , 'deflate','br'",
@@ -30,7 +34,7 @@ def doerro(url):
             break
         print 'Network Error Retry----- '
     print url + ' go......Success'
-    return Result
+    PageAnalysis(Result)
 
 
 def DelLastChar(str):
@@ -62,5 +66,4 @@ def PageAnalysis(page):
         except Exception as e:
             print e
 if __name__ == '__main__':
-    t = getSalesorder('https://dashboard.xsellco.com/salesorder?page=1')
-    print (t.webGet())
+    doerro('https://dashboard.xsellco.com/salesorder')
