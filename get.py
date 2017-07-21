@@ -247,6 +247,7 @@ def getXsellcoPage(page):
 
 
 def  runfast(url):
+
 	strl=str( doerro(url))
 	s=re.split("1 - 100 of ",strl)[1].split('<')[0]
 	li=[]
@@ -261,10 +262,7 @@ def  runfast(url):
  		t.start()
  	for t in li:
  		t.join()
- 	lis=[]
- 	for x in db.threadFind():
- 		lis+=getXsellcoPage(x['page'])
- 	return lis
+
 # def timer():  
 #     ''''' 
 #     每n秒执行一次 
@@ -289,12 +287,16 @@ if __name__ == '__main__':
 	# print requests.post(data=data,url=url,headers=headers).text
 	while True:
 		# Geteasybiz()
-		lista= runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=1&fgte_quantity=1')
-		lista+=runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=0&fgte_quantity=1')
+		db.delpage()
+		runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=1&fgte_quantity=1')
+		runfast('https://dashboard.xsellco.com/repricer?fai_is_configured%5B%5D=0&fgte_quantity=1')
+		lista=[]
+ 		for x in db.threadFind():
+			lista+=getXsellcoPage(x['page'])
 		import csv
 		csvfile = file('csvtest.csv', 'wb')
 		writer = csv.writer(csvfile)
 		lista.insert(0,('Acct ','SKU','ASIN','Title','Inventory','Sellers','Rank','Buy Box Price','Lowest Price','My Price','My LowestPrice','My HighestPrice','Match Buybox','Repricer','Laptop Profit Rate','Desktop Profit Rate','EB Cost','10 Days sales'))
 		writer.writerows(lista)
 		csvfile.close()
-		time.sleep(86400)
+		time.sleep(100000)

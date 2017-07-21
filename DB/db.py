@@ -31,7 +31,8 @@ def insert(x):
 def Del():
 	db.sqa.remove()  
 	client.sqa.remove()  
+
+def delpage():
 	db.page.remove()
 if __name__ == '__main__':
-	for x in  threadFind():
-		print x
+ 	db.page.remove()
