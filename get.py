@@ -66,15 +66,14 @@ def Geteasybiz():
 	thread_list = [] 
 	for x in xrange(100):
 		url='https://dashboard.xsellco.com/salesorder?page='+str(x+1)
-		
 		t =threading.Thread(target=salesorder.doerro,args=('https://dashboard.xsellco.com/salesorder?page='+str(x+1),))
-		thread_list.append(t)
+		thread_list.append(t)	
 	for t in thread_list:
 		t.start()
 	for t in thread_list:
 		t.join()
-if __name__ == '__main__':
-	Geteasybiz()
+# if __name__ == '__main__':
+# 	Geteasybiz()
 def fooget(url):
 	strl=str( doerro(url))
 	s=re.split("1 - 100 of ",strl)[1].split('<')[0]
@@ -255,7 +254,7 @@ def  runfast(url):
 	for x in range(sc+1):
 		try:
 			# 'https://dashboard.xsellco.com'+strl[strl.find('Next'):].split('"')[2]
-			li.append(threading.Thread(target=doSave,args=(url[:-1]+str(x+1),)) )
+			li.append(threading.Thread(target=doSave,args=(url+'&page='+str(x+1),)) )
  		except Exception as e:
  			print e
  	for t in li:
